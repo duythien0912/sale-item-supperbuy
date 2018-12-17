@@ -1,10 +1,16 @@
+DEMO:
+
+https://hardcore-minsky-3b0bc6.netlify.com/
+
+http://supperbuy-sale.surge.sh/
+
 # nuxt
 
 > My flawless Nuxt.js project
 
 ## Build Setup
 
-``` bash
+```bash
 # install dependencies
 $ yarn install
 
