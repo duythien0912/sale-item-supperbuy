@@ -7,8 +7,9 @@
   "scripts": {
     "dev": "cross-env NODE_ENV=development nodemon --watch server --exec ts-node server/index",
     "build": "nuxt build",
+    "build:server": "tsc",
     "start": "cross-env NODE_ENV=production ts-node server/index",
-    "generate": "nuxt generate",
+    "generate": "npm run build:server && nuxt generate",
     "lint": "eslint --ext .js,.vue --ignore-path .gitignore .",
     "precommit": "npm run lint"
   },
@@ -16,7 +17,8 @@
     "@nuxtjs/axios": "^5.0.0",
     "cross-env": "^5.2.0",
     "express": "^4.16.3",
-    "nuxt": "^2.0.0"
+    "nuxt": "^2.0.0",
+    "serverless-http": "^1.8.0"
   },
   "devDependencies": {
     "@types/node": "^10.12.15",

@@ -1,5 +1,7 @@
 const express = require('express')
 const consola = require('consola')
+const serverless = require('serverless-http')
+
 const { Nuxt, Builder } = require('nuxt')
 
 import routes from './Routes'
@@ -37,3 +39,5 @@ async function start() {
   })
 }
 start()
+
+module.exports.handler = serverless(app)
