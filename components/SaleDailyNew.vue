@@ -1,74 +1,180 @@
 <template>
-  <table class="text-left" style="border-collapse:collapse">
-    <thead>
-      <tr>
-        <th
-          v-for="(thColumnItem, index) in thColumn"
-          :key="`thColumnItem.id-${index}`"
-          class="py-2 px-4 bg-grey-lighter font-sans font-medium uppercase text-sm text-grey border-b border-grey-light"
-        >{{ thColumnItem.name }}</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr
-        v-for="(resSDNItem, index) in resSDN"
-        :key="`resSDNItem-${index}`"
-        class="hover:bg-blue-lightest"
-      >
-        <td
-          v-for="(resSDNItemItem, index) in resSDNItem"
-          :key="`resSDNItemItem-${index}`"
-          class="py-2 px-4 border-b border-grey-light max-w-xs"
+  <div>
+    <div
+      v-if="loading"
+      id="ipl-progress-indicator"
+      class="ipl-progress-indicator"
+    >
+      <div class="ipl-progress-indicator-head">
+        <div class="first-indicator" />
+        <div class="second-indicator" />
+      </div>
+
+    </div>
+
+    <button
+      class="py-2 px-4 shadow-md no-underline rounded-full bg-blue text-white font-sans font-semibold text-xl border-blue btn-primary hover:text-white hover:bg-blue-light focus:outline-none active:shadow-none fixed pin-t pin-r mt-8 mr-8"
+      @click="startInterval"
+    >Get New
+      <span v-if="sync">
+        <img src="~/assets/image/Spinner.svg">
+      </span>
+    </button>
+
+    <table
+      class="text-left word-break-all w-full"
+      style="border-collapse:collapse"
+    >
+
+      <thead>
+        <tr>
+          <th
+            v-for="(thColumnItem, index) in thColumn"
+            v-if="CheckColumnGet(thColumnItem.name)"
+            :key="`thColumnItem.id-${index}`"
+            class="py-2 px-4 bg-grey-lighter font-sans font-medium uppercase text-sm text-grey border-b border-grey-light text-center"
+          >
+            {{ thColumnItem.name }}
+
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          v-for="(resSDNItem, indexResSDNItem) in resSDN"
+          :key="`resSDNItem-${indexResSDNItem}`"
+          class="hover:bg-blue-lightest"
         >
-          <div v-if="checkImageLink(resSDNItemItem)">
-            <img :src="resSDNItemItem">
-          </div>
-          <div v-else-if="checkLink(resSDNItemItem)">
-            <a :href="resSDNItemItem" :target="'_black'">{{ resSDNItemItem }}</a>
-          </div>
-          <div v-else>{{ resSDNItemItem }}</div>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+          <td
+            v-for="(resSDNItemItem, indexResSDNItemItem) in resSDNItem"
+            v-if="CheckColumnGet(indexResSDNItemItem)"
+            :key="`resSDNItemItem-${indexResSDNItemItem}`"
+            class="py-2 px-4 border-b border-grey-light max-w-10em text-center"
+          >
+            <img
+              v-if="checkImageLink(resSDNItemItem, indexResSDNItemItem)"
+              :src="resSDNItemItem"
+              class="max-w-5em"
+            >
+            <a
+              v-else-if="checkLink(resSDNItemItem)"
+              :href="resSDNItemItem"
+              :target="'_black'"
+            >{{ resSDNItemItem }}</a>
+            <p v-else>{{ resSDNItemItem }}</p>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
 </template>
 
 <script>
+import { merge_array } from './mergeArray'
+
 export default {
-  data() {
+  data () {
     return {
       resSDN: '',
-      thColumn: []
+      thColumn: [],
+      loading: false,
+      sync: false
     }
   },
-  async mounted() {
-    // Request with full url becasue we are in JSDom env
-    const { data } = await this.$axios.$get(
-      'https://front.superbuy.com/shoppingguide/sale-daily-new?count=20'
-    )
+  async created () {
 
-    const thcl = []
-    if (data && data[0]) {
-      Object.keys(data[0]).map(function(key, index) {
-        thcl.push({ name: key, id: `thcl-${index}` })
-      })
-    }
+    this.start()
+    await this.getData()
+    this.finish()
 
-    this.resSDN = data
-    this.thColumn = thcl
   },
+
+  beforeDestroy () {
+    clearInterval(this.polling)
+  },
+
 
   methods: {
-    checkImageLink: function(string) {
+    start () {
+      this.loading = true
+    },
+    finish () {
+      this.loading = false
+    },
+
+    getData: async function () {
+
+      try {
+
+        // this.$nuxt.$loading.start()
+
+        const { data } = await this.$axios.$get(
+          'https://front.superbuy.com/shoppingguide/sale-daily-new?count=20'
+        )
+
+        const thcl = []
+        if (data && data[0]) {
+          Object.keys(data[0]).map(function (key, index) {
+            thcl.push({ name: key, id: `thcl-${index}` })
+          })
+        }
+
+        this.resSDN = data
+        this.thColumn = thcl
+        // this.$nuxt.$loading.finish()
+
+      } catch (error) {
+        console.log(error)
+      }
+
+    },
+
+    reGetData: async function () {
+      console.log('renew data')
+
+      this.start()
+
+      // this.$nuxt.$loading.start()
+
+      const { data } = await this.$axios.$get(
+        'https://front.superbuy.com/shoppingguide/sale-daily-new?count=20'
+      )
+
+      this.resSDN = data
+      this.finish()
+
+      // this.$nuxt.$loading.finish()
+    },
+
+    startInterval: function () {
+      this.sync = !this.sync
+      clearInterval(this.polling)
+      if (this.sync === true) {
+
+        this.reGetData()
+
+        this.polling = setInterval(() => {
+          this.reGetData()
+        }, 5000);
+      } else {
+      }
+    },
+
+    checkImageLink: function (string, title) {
+      const columnGet = ['goodsPicUrl', 'buyerAvatar', 'statePicUrl']
+
       const regex = /(http)?s?:?(\/\/[^"']*\.(?:png|jpg|jpeg|gif|png|svg))/gm
       const check = regex.test(string)
       if (check === true) {
+        return 'ok'
+      } else if (columnGet.includes(title)) {
         return 'ok'
       } else {
         return null
       }
     },
-    checkLink: function(string) {
+    checkLink: function (string) {
       const regex = /(http)?s?:?(\/\/[^"']*)/gm
       const check = regex.test(string)
       if (check === true) {
@@ -76,10 +182,173 @@ export default {
       } else {
         return null
       }
+    },
+    consoleLogAll: function (obje, obje2) {
+      console.log(obje, obje2);
+      return null
+    },
+    CheckColumnGet: function (name) {
+      const columnGet = ['goodsPicUrl', 'goodsTitle', 'goodsLink', 'goodsPrice', 'buyerAvatar', 'buyerName', 'statePicUrl']
+      const check = columnGet.includes(name)
+      if (check) {
+        return 'ok'
+      } else {
+        return null
+      }
     }
+
   }
 }
 </script>
 
 <style>
+.max-w-10em {
+  max-width: 10em;
+}
+.max-w-5em {
+  max-width: 5em;
+}
+.word-break-all {
+  word-break: break-all;
+}
+
+.ipl-progress-indicator.available {
+  opacity: 0;
+}
+.ipl-progress-indicator {
+  /* background-color: #f5f5f5; */
+  width: 100%;
+  height: 100%;
+  position: fixed;
+  opacity: 1;
+  pointer-events: none;
+  -webkit-transition: opacity cubic-bezier(0.4, 0, 0.2, 1) 436ms;
+  -moz-transition: opacity cubic-bezier(0.4, 0, 0.2, 1) 436ms;
+  transition: opacity cubic-bezier(0.4, 0, 0.2, 1) 436ms;
+  z-index: 9999;
+}
+.insp-logo-frame {
+  display: -webkit-flex;
+  display: -moz-flex;
+  display: flex;
+  -webkit-flex-direction: column;
+  -moz-flex-direction: column;
+  flex-direction: column;
+  -webkit-justify-content: center;
+  -moz-justify-content: center;
+  justify-content: center;
+  -webkit-animation: fadein 436ms;
+  -moz-animation: fadein 436ms;
+  animation: fadein 436ms;
+  height: 98%;
+}
+.insp-logo-frame-img {
+  width: 112px;
+  height: 112px;
+  -webkit-align-self: center;
+  -moz-align-self: center;
+  align-self: center;
+  border-radius: 50%;
+}
+.ipl-progress-indicator-head {
+  background-color: #fceeff;
+  height: 3px;
+  overflow: hidden;
+  position: relative;
+}
+.ipl-progress-indicator .first-indicator,
+.ipl-progress-indicator .second-indicator {
+  background-color: #ffa9e5;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  top: 0;
+  position: absolute;
+  -webkit-transform-origin: left center;
+  -moz-transform-origin: left center;
+  transform-origin: left center;
+  -webkit-transform: scaleX(0);
+  -moz-transform: scaleX(0);
+  transform: scaleX(0);
+}
+.ipl-progress-indicator .first-indicator {
+  -webkit-animation: first-indicator 2000ms linear infinite;
+  -moz-animation: first-indicator 2000ms linear infinite;
+  animation: first-indicator 2000ms linear infinite;
+}
+.ipl-progress-indicator .second-indicator {
+  -webkit-animation: second-indicator 2000ms linear infinite;
+  -moz-animation: second-indicator 2000ms linear infinite;
+  animation: second-indicator 2000ms linear infinite;
+}
+.ipl-progress-indicator .insp-logo {
+  animation: App-logo-spin infinite 20s linear;
+  border-radius: 50%;
+  -webkit-align-self: center;
+  -moz-align-self: center;
+  align-self: center;
+}
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+@-webkit-keyframes fadein {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@-moz-keyframes fadein {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes fadein {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes first-indicator {
+  0% {
+    transform: translate(0%) scaleX(0);
+  }
+  25% {
+    transform: translate(0%) scaleX(0.5);
+  }
+  50% {
+    transform: translate(25%) scaleX(0.75);
+  }
+  75% {
+    transform: translate(100%) scaleX(0);
+  }
+  100% {
+    transform: translate(100%) scaleX(0);
+  }
+}
+@keyframes second-indicator {
+  0% {
+    transform: translate(0%) scaleX(0);
+  }
+  60% {
+    transform: translate(0%) scaleX(0);
+  }
+  80% {
+    transform: translate(0%) scaleX(0.6);
+  }
+  100% {
+    transform: translate(100%) scaleX(0.1);
+  }
+}
 </style>
