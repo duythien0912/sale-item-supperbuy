@@ -12,6 +12,24 @@ import SaleDailyNew from '~/components/SaleDailyNew.vue'
 export default {
   components: {
     SaleDailyNew
+  },
+  data() {
+    return {
+      title: 'Trends Product from SupperBuy!'
+    }
+  },
+
+  head() {
+    return {
+      title: this.title,
+      meta: [
+        {
+          hid: 'trends',
+          name: 'trends',
+          content: 'Trends Product from SupperBuy'
+        }
+      ]
+    }
   }
 }
 </script>
