@@ -39,7 +39,9 @@ module.exports = {
   */
   modules: [
     // Doc: https://github.com/nuxt-community/axios-module#usage
-    '@nuxtjs/axios'
+    '@nuxtjs/axios',
+    //Doc: https://github.com/wemake-services/nuxt-imagemin
+    'nuxt-imagemin'
   ],
   /*
   ** Axios module configuration

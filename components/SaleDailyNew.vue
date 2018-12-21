@@ -1,31 +1,22 @@
 <template>
   <div>
-    <div
-      v-if="loading"
-      id="ipl-progress-indicator"
-      class="ipl-progress-indicator"
-    >
+    <div v-if="loading" id="ipl-progress-indicator" class="ipl-progress-indicator">
       <div class="ipl-progress-indicator-head">
-        <div class="first-indicator" />
-        <div class="second-indicator" />
+        <div class="first-indicator"/>
+        <div class="second-indicator"/>
       </div>
-
     </div>
 
     <button
-      class="py-2 px-4 shadow-md no-underline rounded-full bg-blue text-white font-sans font-semibold text-xl border-blue btn-primary hover:text-white hover:bg-blue-light focus:outline-none active:shadow-none fixed pin-t pin-r mt-8 mr-8"
+      class="z-1000 py-2 px-4 shadow-md no-underline rounded-full bg-blue text-white font-sans font-semibold text-xl border-blue btn-primary hover:text-white hover:bg-blue-light focus:outline-none active:shadow-none fixed pin-t pin-r mt-8 mr-8"
       @click="startInterval"
     >Get New
-      <span v-if="sync">
+      <!-- <span v-if="sync">
         <img src="~/assets/image/Spinner.svg">
-      </span>
+      </span>-->
     </button>
 
-    <table
-      class="text-left word-break-all w-full"
-      style="border-collapse:collapse"
-    >
-
+    <table class="text-left word-break-all w-full" style="border-collapse:collapse">
       <thead>
         <tr>
           <th
@@ -33,10 +24,7 @@
             v-if="CheckColumnGet(thColumnItem.name)"
             :key="`thColumnItem.id-${index}`"
             class="py-2 px-4 bg-grey-lighter font-sans font-medium uppercase text-sm text-grey border-b border-grey-light text-center"
-          >
-            {{ thColumnItem.name }}
-
-          </th>
+          >{{ thColumnItem.name }}</th>
         </tr>
       </thead>
       <tbody>
@@ -51,11 +39,12 @@
             :key="`resSDNItemItem-${indexResSDNItemItem}`"
             class="py-2 px-4 border-b border-grey-light max-w-10em text-center"
           >
-            <img
+            <v-lazy-image
               v-if="checkImageLink(resSDNItemItem, indexResSDNItemItem)"
               :src="resSDNItemItem"
               class="max-w-5em"
-            >
+            />
+            <!-- :src-placeholder="require('~/assets/image/preloader.svg')" -->
             <a
               v-else-if="checkLink(resSDNItemItem)"
               :href="resSDNItemItem"
@@ -67,55 +56,55 @@
       </tbody>
     </table>
   </div>
-
 </template>
 
 <script>
+import VLazyImage from 'v-lazy-image'
+
 import { merge_array } from './mergeArray'
 
 export default {
-  data () {
+  components: {
+    VLazyImage
+  },
+
+  data() {
     return {
-      resSDN: '',
+      resSDN: [],
       thColumn: [],
       loading: false,
       sync: false
     }
   },
-  async created () {
-
+  async created() {
     this.start()
     await this.getData()
     this.finish()
-
   },
 
-  beforeDestroy () {
+  beforeDestroy() {
     clearInterval(this.polling)
   },
 
-
   methods: {
-    start () {
+    start() {
       this.loading = true
     },
-    finish () {
+    finish() {
       this.loading = false
     },
 
-    getData: async function () {
-
+    getData: async function() {
       try {
-
         // this.$nuxt.$loading.start()
 
         const { data } = await this.$axios.$get(
-          'https://front.superbuy.com/shoppingguide/sale-daily-new?count=20'
+          'https://front.superbuy.com/shoppingguide/sale-daily-new?count=40'
         )
 
         const thcl = []
         if (data && data[0]) {
-          Object.keys(data[0]).map(function (key, index) {
+          Object.keys(data[0]).map(function(key, index) {
             thcl.push({ name: key, id: `thcl-${index}` })
           })
         }
@@ -123,14 +112,12 @@ export default {
         this.resSDN = data
         this.thColumn = thcl
         // this.$nuxt.$loading.finish()
-
       } catch (error) {
         console.log(error)
       }
-
     },
 
-    reGetData: async function () {
+    reGetData: async function() {
       console.log('renew data')
 
       this.start()
@@ -147,21 +134,24 @@ export default {
       // this.$nuxt.$loading.finish()
     },
 
-    startInterval: function () {
-      this.sync = !this.sync
-      clearInterval(this.polling)
-      if (this.sync === true) {
+    startInterval: function() {
+      this.resSDN = []
+      this.reGetData()
 
-        this.reGetData()
+      // this.sync = !this.sync
+      // clearInterval(this.polling)
+      // if (this.sync === true) {
 
-        this.polling = setInterval(() => {
-          this.reGetData()
-        }, 5000);
-      } else {
-      }
+      //   this.reGetData()
+
+      //   this.polling = setInterval(() => {
+      //     this.reGetData()
+      //   }, 5000);
+      // } else {
+      // }
     },
 
-    checkImageLink: function (string, title) {
+    checkImageLink: function(string, title) {
       const columnGet = ['goodsPicUrl', 'buyerAvatar', 'statePicUrl']
 
       const regex = /(http)?s?:?(\/\/[^"']*\.(?:png|jpg|jpeg|gif|png|svg))/gm
@@ -174,7 +164,7 @@ export default {
         return null
       }
     },
-    checkLink: function (string) {
+    checkLink: function(string) {
       const regex = /(http)?s?:?(\/\/[^"']*)/gm
       const check = regex.test(string)
       if (check === true) {
@@ -183,12 +173,20 @@ export default {
         return null
       }
     },
-    consoleLogAll: function (obje, obje2) {
-      console.log(obje, obje2);
+    consoleLogAll: function(obje, obje2) {
+      console.log(obje, obje2)
       return null
     },
-    CheckColumnGet: function (name) {
-      const columnGet = ['goodsPicUrl', 'goodsTitle', 'goodsLink', 'goodsPrice', 'buyerAvatar', 'buyerName', 'statePicUrl']
+    CheckColumnGet: function(name) {
+      const columnGet = [
+        'goodsPicUrl',
+        'goodsTitle',
+        'goodsLink',
+        'goodsPrice',
+        'buyerAvatar',
+        'buyerName',
+        'statePicUrl'
+      ]
       const check = columnGet.includes(name)
       if (check) {
         return 'ok'
@@ -196,12 +194,22 @@ export default {
         return null
       }
     }
-
   }
 }
 </script>
 
 <style>
+.z-1000 {
+  z-index: 1000;
+}
+.v-lazy-image {
+  filter: blur(3px);
+  transition: filter 1.3s;
+  will-change: filter;
+}
+.v-lazy-image-loaded {
+  filter: blur(0);
+}
 .max-w-10em {
   max-width: 10em;
 }
