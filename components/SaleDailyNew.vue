@@ -18,7 +18,7 @@
 
     <table class="text-left word-break-all w-full" style="border-collapse:collapse">
       <thead>
-        <tr>
+        <tr class="hidden md:table-row">
           <th
             v-for="(thColumnItem, index) in thColumn"
             v-if="CheckColumnGet(thColumnItem.name)"
@@ -31,26 +31,37 @@
         <tr
           v-for="(resSDNItem, indexResSDNItem) in resSDN"
           :key="`resSDNItem-${indexResSDNItem}`"
-          class="hover:bg-blue-lightest"
+          class="hover:bg-blue-lightest flex flex-col md:table-row"
         >
           <td
             v-for="(resSDNItemItem, indexResSDNItemItem) in resSDNItem"
             v-if="CheckColumnGet(indexResSDNItemItem)"
             :key="`resSDNItemItem-${indexResSDNItemItem}`"
-            class="py-2 px-4 border-b border-grey-light max-w-10em text-center"
+            class="py-2 px-4 border-b border-grey-light text-center md:max-w-10em max-w-full"
           >
-            <v-lazy-image
-              v-if="checkImageLink(resSDNItemItem, indexResSDNItemItem)"
-              :src="resSDNItemItem"
-              class="max-w-5em"
-            />
-            <!-- :src-placeholder="require('~/assets/image/preloader.svg')" -->
             <a
-              v-else-if="checkLink(resSDNItemItem)"
-              :href="resSDNItemItem"
+              v-if="checkImageLink(resSDNItemItem, indexResSDNItemItem)"
+              :href="resSDNItem.goodsLink"
               :target="'_black'"
+            >
+              <v-lazy-image
+                v-if="indexResSDNItemItem === 'goodsPicUrl'"
+                :src="resSDNItemItem"
+                class="max-w-full md:max-w-10em"
+              />
+              <v-lazy-image
+                v-else
+                :src="resSDNItemItem"
+                class="max-w-full hidden md:inline md:max-w-5em"
+              />
+            </a>
+            <a
+              v-else-if="checkTitle(indexResSDNItemItem)"
+              :href="resSDNItem.goodsLink"
+              :target="'_black'"
+              class="no-underline text-teal-dark hover:text-purple-light"
             >{{ resSDNItemItem }}</a>
-            <p v-else>{{ resSDNItemItem }}</p>
+            <p v-else class="text-teal-dark">{{ resSDNItemItem }}</p>
           </td>
         </tr>
       </tbody>
@@ -152,7 +163,7 @@ export default {
     },
 
     checkImageLink: function(string, title) {
-      const columnGet = ['goodsPicUrl', 'buyerAvatar', 'statePicUrl']
+      const columnGet = ['goodsPicUrl', 'buyerAvatar']
 
       const regex = /(http)?s?:?(\/\/[^"']*\.(?:png|jpg|jpeg|gif|png|svg))/gm
       const check = regex.test(string)
@@ -173,6 +184,13 @@ export default {
         return null
       }
     },
+    checkTitle: function(name) {
+      if (name === 'goodsTitle') {
+        return 'ok'
+      } else {
+        return null
+      }
+    },
     consoleLogAll: function(obje, obje2) {
       console.log(obje, obje2)
       return null
@@ -181,11 +199,11 @@ export default {
       const columnGet = [
         'goodsPicUrl',
         'goodsTitle',
-        'goodsLink',
+        // 'goodsLink',
         'goodsPrice',
         'buyerAvatar',
-        'buyerName',
-        'statePicUrl'
+        'buyerName'
+        // 'statePicUrl'
       ]
       const check = columnGet.includes(name)
       if (check) {
@@ -193,12 +211,27 @@ export default {
       } else {
         return null
       }
+    },
+    openNewWindow: function(link) {
+      return window.open(link)
     }
   }
 }
 </script>
 
 <style>
+.max-w-5em {
+  max-width: 5em;
+}
+@media (min-width: 768px) {
+  .md\:max-w-5em {
+    max-width: 5em;
+  }
+  .md\:max-w-10em {
+    max-width: 10em;
+  }
+}
+
 .z-1000 {
   z-index: 1000;
 }
