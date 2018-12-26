@@ -47,13 +47,25 @@
               <v-lazy-image
                 v-if="indexResSDNItemItem === 'goodsPicUrl'"
                 :src="resSDNItemItem"
-                class="max-w-full md:max-w-10em"
+                class="max-w-full md:max-w-10em md:inline"
               />
               <v-lazy-image
                 v-else
                 :src="resSDNItemItem"
-                class="max-w-full hidden md:inline md:max-w-5em"
+                class="max-w-full md:max-w-5em hidden md:inline"
               />
+
+              <!-- <img
+                v-if="indexResSDNItemItem === 'goodsPicUrl'"
+                :src="resSDNItemItem"
+                class="max-w-full md:max-w-10em md:hidden"
+              >
+              
+              <img
+                v-else
+                :src="resSDNItemItem"
+                class="md:hidden max-w-full hidden md:inline md:max-w-5em"
+              >-->
             </a>
             <a
               v-else-if="checkTitle(indexResSDNItemItem)"
